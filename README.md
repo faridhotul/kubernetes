@@ -11,7 +11,7 @@
 
 2. Membuat 3 buah file seperti dibawah ini :
 
-![gambar 01](01.PNG)
+![gambar 01](01.png)
 
 - isi file app.py
 
@@ -56,7 +56,7 @@ flask_restful
 
 3. Login kedalam dockerhub yang sudah pernah dibuat saat UTS
 
-![gambar 02](02.PNG)
+![gambar 02](02.png)
 
 4. Membuat docker image kedalam dockerhub, pada saat ini kita melakukan push kedalam dockerhub. 
 
