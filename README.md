@@ -3,6 +3,37 @@
 ## NAMA : FARIDHOTUL KHASANAH / 175410026
 ## UAS - KUBERNETES
 
+## DEFINISI
+
+## Komponen-Komponen Kubernetes
+
+### Komponen Master
+
+Komponen master menyediakan control plane bagi klaster. Komponen ini berperan dalam proses pengambilan secara global pada klaster, serta berperan dalam proses deteksi serta pemberian respons terhadap events yang berlangsung di dalam klaster. Komponen master dapat dijalankan di mesin manapun yang ada di klaster, untuk memudahkan proses yang ada, script inisiasi awal yang dijalankan biasanya memulai komponen master pada mesin yang sama, serta tidak menjalankan kontainer bagi pengguna di mesin ini.
+
+1. kube-apiserver
+Komponen di master yang mengekspos API Kubernetes. Merupakan front-end dari kontrol plane Kubernetes. Komponen ini didesain agar dapat di-scale secara horizontal.
+
+2. etcd
+Penyimpanan key value konsisten yang digunakan sebagai penyimpanan data klaster Kubernetes.
+
+3. kube-scheduler
+Komponen di master yang bertugas mengamati pod yang baru dibuat dan belum di-assign ke suatu node dan kemudian akan memilih sebuah node dimana pod baru tersebut akan dijalankan.
+
+Faktor-faktor yang diperhatikan dalam proses ini adalah kebutuhan resource secara individual dan kolektif, konstrain perangkat keras/perangkat lunak/peraturan, spesifikasi afinitas dan non-afinitas, lokalisasi data, interferensi inter-workload dan deadlines.
+
+4. kube-controller-manager
+Komponen di master yang menjalankan kontroler.
+
+Secara logis, setiap kontroler adalah sebuah proses yang berbeda, tetapi untuk mengurangi kompleksitas, kontroler-kontroler ini dikompilasi menjadi sebuah binary yang dijalankan sebagai satu proses. Kontroler-kontroler ini meliputi:
+
+- Kontroler Node : Bertanggung jawab untuk mengamati dan memberikan respons apabila jumlah node berkurang.
+- Kontroler Replikasi : Bertanggung jawab untuk menjaga jumlah pod agar jumlahnya sesuai dengan kebutuhan setiap objek kontroler replikasi yang ada di sistem.
+- Kontroler Endpoints : Menginisiasi objek Endpoints (yang merupakan gabungan Pods dan Services).
+- Kontroler Service Account & Token: Membuat akun dan akses token API standar untuk setiap namespaces yang dibuat.
+
+# KASUS
+
 ## Membuat docker image
 
 1. Membuat direktori
@@ -58,7 +89,7 @@ flask_restful
 
 ![gambar 02](02.png)
 
-4. Membuat docker image kedalam dockerhub, pada saat ini kita melakukan push kedalam dockerhub. 
+4. Membuat docker image kedalam dockerhub
 
 ```
 PS C:\Users\Faridhotul\python-flask-farid> docker build -t faridhotul/kubernetes-farid .
@@ -132,6 +163,32 @@ faridhotul/kubernetes-farid   latest              372abc9f1888        4 minutes 
 python                        2.7                 426ba9523d99        10 days ago         896MB
 ```
 
+6. Lakukan push kedalam dockerhub
+
+```PS C:\Users\Faridhotul\python-flask-farid> docker images
+REPOSITORY                    TAG                 IMAGE ID            CREATED             SIZE
+faridhotul/kubernetes-farid   latest              372abc9f1888        About an hour ago   903MB
+python                        2.7                 426ba9523d99        10 days ago         896MB
+PS C:\Users\Faridhotul\python-flask-farid> docker push faridhotul/kubernetes-farid
+The push refers to repository [docker.io/faridhotul/kubernetes-farid]
+e9ccc57548a0: Pushed
+daf0a3a29faa: Pushed
+a98ea9b99554: Mounted from library/python
+03a3dc679282: Mounted from library/python
+35fc403d4c4c: Mounted from library/python
+c1fbc35a2660: Mounted from library/python
+f63773c65620: Mounted from library/python
+e6d60910d056: Mounted from library/python
+b52c1c103fae: Mounted from library/python
+6f1c84e6ec59: Mounted from library/python
+dd5242c2dc8a: Mounted from library/python
+latest: digest: sha256:54ce9e25213d6fcde359abdc83bd5f71b76eba5b431d9513d57daad6153aabb9 size: 2639
+```
+
+7. Cek kedalam https://hub.docker.com/repositories
+
+![gambar 05](05.PNG)
+
 ## Menjalankan DockerImage yang terdapat di DockerHub menggunakan Kubernetes
 
 Sebelum menjalankan proses dibawah ini silahkan buka link berikut : https://kubernetes.io/docs/tutorials/hello-minikube/. Kemudian klik **Launch Terminal**
@@ -152,17 +209,16 @@ deployment.apps/farid-python-flask created
 ```
 $ kubectl get deployments
 NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-farid-python-flask   0/1     1            0           27s
+farid-python-flask   0/1     1            0           10s
 ```
 
-![gambar 04](04.PNG)
 
 3. Melihat Pod yang sudah dibuat
 
 ```
 $ kubectl get pods
-NAME                                  READY   STATUS             RESTARTS   AGE
-farid-python-flask-684454bdb9-v4kkv   0/1     ImagePullBackOff   0          118s
+NAME                                  READY   STATUS    RESTARTS   AGE
+farid-python-flask-684454bdb9-9mwvv   1/1     Running   0          116s
 ```
 
 4. Melihat event yang terjadi pada Cluster
@@ -170,30 +226,11 @@ farid-python-flask-684454bdb9-v4kkv   0/1     ImagePullBackOff   0          118s
 ```
 $ kubectl get events
 LAST SEEN   TYPE      REASON                    OBJECT                                     MESSAGE
-2m11s       Normal    Scheduled                 pod/farid-python-flask-684454bdb9-v4kkv    Successfully assigned default/farid-python-flask-684454bdb9-v4kkv to minikube
-19s         Normal    Pulling                   pod/farid-python-flask-684454bdb9-v4kkv    Pulling image "faridhotul/kubernetes-farid"
-17s         Warning   Failed                    pod/farid-python-flask-684454bdb9-v4kkv    Failed to pull image "faridhotul/kubernetes-farid": rpc error: code = Unknown desc = Error response from daemon: pull access denied for faridhotul/kubernetes-farid, repository does not exist or may require 'docker login'
-17s         Warning   Failed                    pod/farid-python-flask-684454bdb9-v4kkv    Error: ErrImagePull
-2s          Normal    BackOff                   pod/farid-python-flask-684454bdb9-v4kkv    Back-off pulling image "faridhotul/kubernetes-farid"
-2s          Warning   Failed                    pod/farid-python-flask-684454bdb9-v4kkv    Error: ImagePullBackOff
-2m12s       Normal    SuccessfulCreate          replicaset/farid-python-flask-684454bdb9   Created pod: farid-python-flask-684454bdb9-v4kkv
-2m12s       Normal    ScalingReplicaSet         deployment/farid-python-flask              Scaled up replica set farid-python-flask-684454bdb9 to 1
-9m23s       Normal    Starting                  node/minikube                              Starting kubelet.
-9m23s       Normal    NodeHasSufficientMemory   node/minikube                              Node minikube status is now: NodeHasSufficientMemory
-9m23s       Normal    NodeHasNoDiskPressure     node/minikube                              Node minikube status is now: NodeHasNoDiskPressure
-9m23s       Normal    NodeHasSufficientPID      node/minikube                              Node minikube status is now: NodeHasSufficientPID
-9m22s       Normal    RegisteredNode            node/minikube                              Node minikube event: Registered Node minikube in Controller
-9m22s       Normal    NodeAllocatableEnforced   node/minikube                              Updated Node Allocatable limit across pods
-9m19s       Normal    Starting                  node/minikube                              Starting kube-proxy.
-9m12s       Normal    NodeReady                 node/minikube                              Node minikube status is now: NodeReady
-6m44s       Normal    Scheduled                 pod/python-flask-657f9cc946-hh6kd          Successfully assigned default/python-flask-657f9cc946-hh6kd to minikube
-5m10s       Normal    Pulling                   pod/python-flask-657f9cc946-hh6kd          Pulling image "faridhotul/kubernetes-farid"
-5m8s        Warning   Failed                    pod/python-flask-657f9cc946-hh6kd          Failed to pull image "faridhotul/kubernetes-farid": rpc error: code = Unknown desc = Error response from daemon: pull access denied for faridhotul/kubernetes-farid, repository does not exist or may require 'docker login'
-5m8s        Warning   Failed                    pod/python-flask-657f9cc946-hh6kd          Error: ErrImagePull
-4m55s       Normal    BackOff                   pod/python-flask-657f9cc946-hh6kd          Back-off pulling image "faridhotul/kubernetes-farid"
-4m42s       Warning   Failed                    pod/python-flask-657f9cc946-hh6kd          Error: ImagePullBackOff
-6m44s       Normal    SuccessfulCreate          replicaset/python-flask-657f9cc946         Created pod: python-flask-657f9cc946-hh6kd
-6m44s       Normal    ScalingReplicaSet         deployment/python-flask                    Scaled up replica set python-flask-657f9cc946 to 1
+2m45s       Normal    Scheduled                 pod/farid-python-flask-684454bdb9-9mwvv    Successfully assigned default/farid-python-flask-684454bdb9-9mwvv to minikube
+2m40s       Normal    Pulling                   pod/farid-python-flask-684454bdb9-9mwvv    Pulling image "faridhotul/kubernetes-farid"
+108s        Normal    Pulled                    pod/farid-python-flask-684454bdb9-9mwvv    Successfully pulled image "faridhotul/kubernetes-farid"
+106s        Normal    Created                   pod/farid-python-flask-684454bdb9-9mwvv    Created container kubernetes-farid
+105s        Normal    Started                   pod/farid-python-flask-684454bdb9-9mwvv    Started container kubernetes-farid
 ```
 
 5. Melihat konfigurasi kubectl
@@ -240,3 +277,9 @@ NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)       
 farid-python-flask   LoadBalancer   10.96.196.108   <pending>     5000:32529/TCP   25s
 kubernetes           ClusterIP      10.96.0.1       <none>        443/TCP          11m
 ```
+
+Port 32529 digunakan untuk mengakse pada browser
+
+3. Akses pada browser menggunakan port 32529 (dapat dilihat pada service).
+
+![gambar 06](06.PNG)
